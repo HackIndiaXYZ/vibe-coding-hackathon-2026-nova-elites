@@ -31,20 +31,29 @@ import attendanceRoutes from './modules/volunteers/attendance/routes';
 const app = express();
 
 const allowedOrigins = [
-  env.FRONTEND_URL,
+  ...(env.FRONTEND_URL?.split(',') || []),
+
   'http://localhost:3001',
   'http://localhost:5173',
   'http://localhost:5174',
+
   'https://samanvay-onega.vercel.app',
-  'https://samanvay-frontend-76y6.vercel.app',
-  'https://samanvay-onega.vercel.app'
-].filter(Boolean) as string[];
+  'https://samanvay-frontend-76y6.vercel.app'
+].filter(Boolean);
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // allow server-to-server / postman requests
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
   credentials: true
 }));
-
 app.use(express.json());
 
 // Health check endpoint (must be before routes and 404 handler)
