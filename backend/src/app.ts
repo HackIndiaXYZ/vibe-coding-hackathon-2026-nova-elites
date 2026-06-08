@@ -31,7 +31,7 @@ import attendanceRoutes from './modules/volunteers/attendance/routes';
 const app = express();
 
 const allowedOrigins = [
-  ...(env.FRONTEND_URL?.split(',') || []),
+  env.FRONTEND_URL,
 
   'http://localhost:3001',
   'http://localhost:5173',
@@ -39,16 +39,17 @@ const allowedOrigins = [
 
   'https://samanvay-onega.vercel.app',
   'https://samanvay-frontend-76y6.vercel.app'
-].filter(Boolean);
+].filter(Boolean) as string[];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow server-to-server / postman requests
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
+
+    console.log('Blocked by CORS:', origin);
 
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
