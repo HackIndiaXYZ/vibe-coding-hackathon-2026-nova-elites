@@ -34,7 +34,10 @@ const allowedOrigins = [
   env.FRONTEND_URL,
   'http://localhost:3001',
   'http://localhost:5173',
-  'http://localhost:5174'
+  'http://localhost:5174',
+  'https://samanvay-onega.vercel.app',
+  'https://samanvay-frontend-76y6.vercel.app',
+  'https://samanvay-onega.vercel.app'
 ].filter(Boolean) as string[];
 
 app.use(cors({
