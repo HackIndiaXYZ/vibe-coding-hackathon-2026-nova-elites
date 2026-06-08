@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../../shared/lib/api';
 import { Bell, CheckSquare, RefreshCw, X } from 'lucide-react';
-import { NotificationItem } from './NotificationItem';
-export interface NotificationData {
-  id: string;
-  type: string;
-  title: string;
-  body: string;
-  isRead: boolean;
-  createdAt: string;
-}
+import { NotificationItem, type NotificationData } from './NotificationItem';
 
 interface NotificationPanelProps {
   onClose: () => void;

@@ -20,8 +20,12 @@ export const api = async <T>(endpoint: string, options: ApiOptions = {}): Promis
   const token = localStorage.getItem('samanvay_token');
   
   const baseUrl = options.useCoordinationLayer 
-    ? import.meta.env.VITE_COORDINATION_URL || 'https://bicholiya-production.up.railway.app'
-    : import.meta.env.VITE_API_URL || 'https://samanvay-production.up.railway.app';
+    ? import.meta.env.VITE_COORDINATION_URL
+    : import.meta.env.VITE_API_URL;
+
+  if (!baseUrl) {
+    throw new Error(`Missing ${options.useCoordinationLayer ? 'VITE_COORDINATION_URL' : 'VITE_API_URL'}`);
+  }
 
   const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 

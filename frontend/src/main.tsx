@@ -5,10 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 
-console.log(">>> MAIN.TSX EXECUTING");
-
 const rootElement = document.getElementById("root");
-console.log(">>> ROOT ELEMENT:", rootElement);
 
 ReactDOM.createRoot(rootElement!).render(
   <React.StrictMode>

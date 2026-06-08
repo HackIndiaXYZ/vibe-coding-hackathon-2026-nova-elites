@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { api } from '../../../shared/lib/api';
 import { Check } from 'lucide-react';
-import type { NotificationData } from './NotificationPanel';
-
+export interface NotificationData {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  isRead: boolean;
+  createdAt: string;
+}
 interface NotificationItemProps {
   notification: NotificationData;
   onReadStatusChange: (id: string, isRead: boolean) => void;
