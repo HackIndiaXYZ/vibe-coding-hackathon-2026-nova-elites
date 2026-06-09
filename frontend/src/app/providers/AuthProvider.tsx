@@ -11,9 +11,9 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   activeWorkspace: Workspace | null;
-  login: (token: string) => void;
+  login: (token: string) => Promise<void>;
   logout: () => void;
-  refreshHydration: () => Promise<void>;
+  refreshHydration: (overrideToken?: string) => Promise<void>;
   setActiveWorkspace: (workspace: Workspace | null) => void;
 }
 
@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(localStorage.getItem('samanvay_token'));
   const [user, setUser] = useState<MeResponse['data'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(() => {
     return workspaceUtils.getStoredWorkspace();
   });
@@ -50,11 +50,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setActiveWorkspaceState(null);
   };
 
-  const refreshHydration = async () => {
+  const refreshHydration = async (overrideToken?: string) => {
+    const authToken = overrideToken ?? token;
+
     let validToken = false;
-    if (token) {
+
+    if (authToken) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const payload = JSON.parse(atob(authToken.split('.')[1]));
+
         if (!payload.exp || payload.exp * 1000 > Date.now()) {
           validToken = true;
         }
@@ -66,7 +70,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!validToken) {
       setUser(null);
       setIsLoading(false);
-      if (token) {
+      if (authToken) {
         logout(); // token is malformed or expired
       }
       return;
@@ -82,9 +86,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Validate workspace against hydrated user
         if (!workspaceUtils.isValidWorkspace(activeWorkspace, fetchedUser)) {
           clearWorkspaceState();
-          
+
           let fallbackWorkspace: Workspace | null = null;
-          
+
           const activeOrgs = (fetchedUser.memberships || []).filter((m: any) => m.status === 'ACTIVE');
           if (activeOrgs.length > 0) {
             fallbackWorkspace = { type: 'organization', organizationId: activeOrgs[0].organization.id };
@@ -93,7 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           } else if ((fetchedUser.memberships || []).length > 0) {
             fallbackWorkspace = { type: 'organization', organizationId: fetchedUser.memberships[0].organization.id };
           }
-          
+
           setActiveWorkspaceState(fallbackWorkspace);
           if (fallbackWorkspace) {
             workspaceUtils.setStoredWorkspace(fallbackWorkspace);
@@ -133,20 +137,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => window.removeEventListener('storage', handleStorage);
   }, [token]);
 
-  const login = (newToken: string) => {
+  const login = async (newToken: string) => {
     localStorage.setItem('samanvay_token', newToken);
+
+    setIsLoading(true);
+
     setToken(newToken);
+
+    await refreshHydration(newToken);
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        token, 
-        user, 
-        isLoading, 
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        isLoading,
         isAuthenticated: !!token,
         activeWorkspace,
-        login, 
+        login,
         logout,
         refreshHydration,
         setActiveWorkspace
