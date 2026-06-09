@@ -3,16 +3,16 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { workspaceUtils } from '../../../shared/lib/workspace';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
-import { 
-  LayoutDashboard, 
-  Briefcase, 
-  Activity, 
-  CalendarClock, 
-  UserCircle, 
-  Package, 
-  Users, 
-  ClipboardList, 
-  ArrowLeftRight 
+import {
+  LayoutDashboard,
+  Briefcase,
+  Activity,
+  CalendarClock,
+  UserCircle,
+  Package,
+  Users,
+  ClipboardList,
+  ArrowLeftRight
 } from 'lucide-react';
 
 interface NavItem {
@@ -52,7 +52,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({ isCollapse
   } else if (workspaceUtils.isOrganizationWorkspace(activeWorkspace)) {
     const orgId = workspaceUtils.getOrganizationWorkspaceId(activeWorkspace);
     const orgMembership = user?.memberships?.find(m => m.organization.id === orgId);
-    
+
     if (orgMembership?.status === 'ACTIVE') {
       navItems = organizationNavigation;
     }
@@ -81,18 +81,16 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({ isCollapse
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `group relative flex items-center rounded-lg transition-colors text-sm font-medium ${
-                  isCollapsed ? 'justify-center py-3' : 'gap-3 px-4 py-3'
-                } ${
-                  isActive 
-                    ? 'bg-[var(--color-surface-elevated)] text-[var(--color-primary)]' 
-                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface)]'
+                `group relative flex items-center rounded-lg transition-colors text-sm font-medium ${isCollapsed ? 'justify-center py-3' : 'gap-3 px-4 py-3'
+                } ${isActive
+                  ? 'bg-[var(--color-surface-elevated)] text-[var(--color-primary)]'
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface)]'
                 }`
               }
               aria-label={item.label}
             >
-              <Icon className="w-5 h-5 shrink-0" strokeWidth={2} />
-              
+              <Icon className="w-5 h-5 shrink-0" />
+
               {!isCollapsed && (
                 <span className="truncate">{item.label}</span>
               )}

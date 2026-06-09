@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
-import { Globe, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const Navbar: React.FC = () => {
@@ -21,7 +21,7 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <motion.nav 
+    <motion.nav
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.5, ease: "easeOut" }}
@@ -46,7 +46,7 @@ export const Navbar: React.FC = () => {
       {/* CTA */}
       <div className="flex items-center gap-4">
         {/* Theme Toggle */}
-        <button 
+        <button
           onClick={toggleTheme}
           className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors p-2 cursor-pointer"
           aria-label="Toggle theme"
