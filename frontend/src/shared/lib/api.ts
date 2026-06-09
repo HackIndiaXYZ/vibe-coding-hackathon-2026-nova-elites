@@ -9,7 +9,8 @@ export class ApiError extends Error {
   data: any;
 
   constructor(status: number, data: any, message?: string) {
-    super(message || data?.message || 'An API error occurred');
+    const errorMsg = message || data?.message || data?.errors?.[0]?.message || 'An API error occurred';
+    super(errorMsg);
     this.name = 'ApiError';
     this.status = status;
     this.data = data;

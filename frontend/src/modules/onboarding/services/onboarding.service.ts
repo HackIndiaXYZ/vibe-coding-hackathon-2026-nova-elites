@@ -21,6 +21,7 @@ export interface VolunteerProfilePayload {
   bio?: string;
   homeLocation?: string;
   experienceYears?: number;
+  operationalRegions?: string[];
 }
 
 export const onboardingService = {
