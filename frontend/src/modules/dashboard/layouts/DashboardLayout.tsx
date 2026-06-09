@@ -32,10 +32,10 @@ export const DashboardLayout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white flex overflow-hidden">
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-text-primary)] flex overflow-hidden">
       
       {/* Sidebar Region */}
-      <div className="w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900/30 flex flex-col z-30">
+      <div className="w-64 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-sidebar)] flex flex-col z-30">
         <SidebarNavigation />
       </div>
 
@@ -53,11 +53,6 @@ export const DashboardLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
-
-      {/* Future Command Panel Region */}
-      {/* <div className="hidden xl:block w-72 border-l border-slate-800 bg-slate-900/30 flex-shrink-0">
-         Future contextual actions / activity feed
-      </div> */}
     </div>
   );
 };

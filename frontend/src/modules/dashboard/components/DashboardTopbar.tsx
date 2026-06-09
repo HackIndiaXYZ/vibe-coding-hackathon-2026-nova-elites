@@ -41,12 +41,12 @@ export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
   }, []);
 
   return (
-    <header className="h-16 bg-slate-900/50 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-6 sticky top-0 z-20">
+    <header className="h-14 bg-[var(--color-canvas)] border-b border-[var(--color-border)] flex items-center justify-between px-6 sticky top-0 z-20">
       <div className="flex items-center gap-4">
         {/* Workspace Identifier */}
         <div>
-          <h2 className="text-white font-medium">{workspaceLabel}</h2>
-          <p className="text-xs text-slate-400 tracking-wider uppercase">{workspaceType}</p>
+          <h2 className="text-[var(--color-text-primary)] font-medium text-sm">{workspaceLabel}</h2>
+          <p className="text-[10px] text-[var(--color-text-secondary)] tracking-wider uppercase">{workspaceType}</p>
         </div>
       </div>
 
@@ -54,11 +54,11 @@ export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
         {/* Notifications */}
         <button 
           onClick={() => setIsNotificationPanelOpen(!isNotificationPanelOpen)}
-          className="text-slate-400 hover:text-white transition-colors relative"
+          className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors relative"
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-slate-900"></span>
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[var(--color-warning)] rounded-full border-2 border-[var(--color-canvas)]"></span>
           )}
         </button>
 
@@ -67,11 +67,11 @@ export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
         )}
 
         {/* User Identity & Actions */}
-        <div className="flex items-center gap-4 border-l border-slate-800 pl-6">
-          <span className="text-sm text-slate-300 font-medium">{userName}</span>
+        <div className="flex items-center gap-4 border-l border-[var(--color-border)] pl-6">
+          <span className="text-sm text-[var(--color-text-secondary)] font-medium">{userName}</span>
           <button 
             onClick={onLogout}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600 transition-colors"
+            className="text-xs font-medium px-3 py-1.5 rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface)] transition-colors"
           >
             Logout
           </button>
