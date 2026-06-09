@@ -43,6 +43,10 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({ lots, isLoading 
   return (
     <div className="flex flex-col gap-2">
       {lots.map((lot) => {
+        if (import.meta.env.VITE_STABILIZATION_DEBUG && !lot.resource) {
+          console.warn('[INVALID_RESOURCE_LOT]', lot.id);
+        }
+        
         const status = computeInventoryStatus(lot.quantity, lot.availableQuantity);
         
         return (
@@ -55,12 +59,12 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({ lots, isLoading 
             <div className="flex flex-col gap-1 min-w-0 pr-4">
               {/* Primary */}
               <div className="font-medium text-white truncate text-base">
-                {lot.resource.name}
+                {lot.resource?.name ?? 'Unknown Resource'}
               </div>
               
               {/* Secondary */}
               <div className="text-xs text-slate-400 flex items-center gap-2">
-                <span>{lot.resource.unit}</span>
+                <span>{lot.resource?.unit ?? ''}</span>
                 <span className="w-1 h-1 rounded-full bg-slate-700" />
                 <span className="truncate max-w-[200px]">{lot.notes || 'Main Storage'}</span>
               </div>

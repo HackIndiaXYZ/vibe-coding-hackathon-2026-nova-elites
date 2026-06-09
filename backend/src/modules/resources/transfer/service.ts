@@ -141,11 +141,22 @@ export class TransferService {
   }
 
   async getTransfers(filters: any, skip: number = 0, take: number = 20) {
-    return await prisma.transfer.findMany({
+    const transfers = await prisma.transfer.findMany({
       where: filters,
       skip,
       take,
+      include: {
+        resource: true,
+        fromOrganization: true,
+        toOrganization: true
+      }
     });
+
+    if (process.env.STABILIZATION_DEBUG && transfers.length > 0) {
+      console.log('[TRANSFERS]', JSON.stringify(transfers[0], null, 2));
+    }
+
+    return transfers;
   }
 }
 

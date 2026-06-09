@@ -19,6 +19,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const clearWorkspaceState = () => {
+  workspaceUtils.clearStoredWorkspace();
+};
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('samanvay_token'));
   const [user, setUser] = useState<MeResponse['data'] | null>(null);
@@ -32,15 +36,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (workspace) {
       workspaceUtils.setStoredWorkspace(workspace);
     } else {
-      workspaceUtils.clearStoredWorkspace();
+      clearWorkspaceState();
     }
     setActiveWorkspaceState(workspace);
   };
 
+  const logout = () => {
+    localStorage.removeItem('samanvay_token');
+    clearWorkspaceState();
+    // Note: queryClient.clear() skipped as @tanstack/react-query is not used.
+    setToken(null);
+    setUser(null);
+    setActiveWorkspaceState(null);
+  };
+
   const refreshHydration = async () => {
-    if (!token) {
+    let validToken = false;
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (!payload.exp || payload.exp * 1000 > Date.now()) {
+          validToken = true;
+        }
+      } catch (e) {
+        validToken = false;
+      }
+    }
+
+    if (!validToken) {
       setUser(null);
       setIsLoading(false);
+      if (token) {
+        logout(); // token is malformed or expired
+      }
       return;
     }
 
@@ -48,13 +76,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       const res = await authService.getMe();
       if (res.success) {
-        setUser(res.data);
+        const fetchedUser = res.data;
+        setUser(fetchedUser);
+
+        // Validate workspace against hydrated user
+        if (!workspaceUtils.isValidWorkspace(activeWorkspace, fetchedUser)) {
+          clearWorkspaceState();
+          
+          let fallbackWorkspace: Workspace | null = null;
+          
+          const activeOrgs = (fetchedUser.memberships || []).filter((m: any) => m.status === 'ACTIVE');
+          if (activeOrgs.length > 0) {
+            fallbackWorkspace = { type: 'organization', organizationId: activeOrgs[0].organization.id };
+          } else if (fetchedUser.volunteer) {
+            fallbackWorkspace = { type: 'volunteer' };
+          } else if ((fetchedUser.memberships || []).length > 0) {
+            fallbackWorkspace = { type: 'organization', organizationId: fetchedUser.memberships[0].organization.id };
+          }
+          
+          setActiveWorkspaceState(fallbackWorkspace);
+          if (fallbackWorkspace) {
+            workspaceUtils.setStoredWorkspace(fallbackWorkspace);
+          }
+        }
       } else {
         logout();
       }
     } catch (error) {
       console.error("Failed to hydrate session", error);
-      // logout();
+      logout();
     } finally {
       setIsLoading(false);
     }
@@ -65,17 +115,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  // Multi-tab synchronization
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'samanvay_token') {
+        if (!e.newValue) {
+          logout();
+        } else if (e.newValue !== token) {
+          setToken(e.newValue);
+        }
+      }
+      if (e.key === 'samanvay_active_workspace') {
+        setActiveWorkspaceState(workspaceUtils.getStoredWorkspace());
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [token]);
+
   const login = (newToken: string) => {
     localStorage.setItem('samanvay_token', newToken);
     setToken(newToken);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('samanvay_token');
-    workspaceUtils.clearStoredWorkspace();
-    setToken(null);
-    setUser(null);
-    setActiveWorkspaceState(null);
   };
 
   return (
@@ -92,7 +152,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setActiveWorkspace
       }}
     >
-      {children}
+      {/* Hydration Gate: Suspend rendering of children until hydration is complete to prevent stale requests. */}
+      {isLoading ? null : children}
     </AuthContext.Provider>
   );
 };

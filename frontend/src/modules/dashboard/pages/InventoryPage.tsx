@@ -14,6 +14,7 @@ export const InventoryPage: React.FC = () => {
   const [lots, setLots] = useState<ResourceLotData[]>([]);
   const [filteredLots, setFilteredLots] = useState<ResourceLotData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -27,14 +28,18 @@ export const InventoryPage: React.FC = () => {
     }
 
     setIsLoading(true);
+    setError(null);
     try {
       const res = await api<{ success: boolean; data: ResourceLotData[] }>(`/api/resource-lots?organizationId=${orgId}`);
       if (res.success && res.data) {
         setLots(res.data);
         setFilteredLots(res.data);
+      } else {
+        setError("Inventory feed unavailable");
       }
     } catch (err) {
       console.error('Failed to fetch inventory:', err);
+      setError("Inventory feed unavailable");
     } finally {
       setIsLoading(false);
     }
@@ -52,8 +57,8 @@ export const InventoryPage: React.FC = () => {
     }
     const lower = searchTerm.toLowerCase();
     const filtered = lots.filter(lot => 
-      lot.resource.name.toLowerCase().includes(lower) ||
-      (lot.notes && lot.notes.toLowerCase().includes(lower))
+      (lot.resource?.name ?? '').toLowerCase().includes(lower) ||
+      ((lot.notes ?? '').toLowerCase().includes(lower))
     );
     setFilteredLots(filtered);
   }, [searchTerm, lots]);
@@ -83,10 +88,16 @@ export const InventoryPage: React.FC = () => {
           onSearchChange={setSearchTerm} 
         />
         
-        <InventoryTable 
-          lots={filteredLots} 
-          isLoading={isLoading} 
-        />
+        {error ? (
+          <div className="flex flex-col items-center justify-center h-64 text-rose-500 border border-rose-800/50 rounded-xl bg-rose-900/20">
+            <p>{error}</p>
+          </div>
+        ) : (
+          <InventoryTable 
+            lots={filteredLots} 
+            isLoading={isLoading} 
+          />
+        )}
       </div>
 
       {isModalOpen && (

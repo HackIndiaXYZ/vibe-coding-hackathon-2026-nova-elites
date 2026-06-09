@@ -27,19 +27,24 @@ export const TransfersPage: React.FC = () => {
   const navigate = useNavigate();
   const [transfers, setTransfers] = useState<TransferData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const fetchTransfers = async () => {
     setIsLoading(true);
+    setError(null);
     const orgId = workspaceUtils.getOrganizationWorkspaceId(activeWorkspace);
     if (orgId) {
       try {
         const res = await api<{ success: boolean; data: any[] }>(`/api/transfers?organizationId=${orgId}`);
         if (res.success) {
           setTransfers(res.data);
+        } else {
+          setError("Transfer coordination temporarily unavailable");
         }
       } catch (err) {
         console.error(err);
+        setError("Transfer coordination temporarily unavailable");
       }
     }
     setIsLoading(false);
@@ -70,6 +75,10 @@ export const TransfersPage: React.FC = () => {
           <div className="flex-1 flex items-center justify-center text-slate-500">
             Loading transfers...
           </div>
+        ) : error ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-rose-500 p-8">
+            <p>{error}</p>
+          </div>
         ) : transfers.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
             <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-500 mb-4">
@@ -93,56 +102,61 @@ export const TransfersPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/50">
-                {transfers.map(tr => (
-                  <tr 
-                    key={tr.id} 
-                    onClick={() => navigate(`/dashboard/transfers/${tr.id}`)}
-                    className="group hover:bg-slate-800/30 transition-colors cursor-pointer"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-slate-800/50 border border-slate-700 flex items-center justify-center text-indigo-400">
-                          <Truck className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white group-hover:text-indigo-300 transition-colors">
-                            {tr.resource?.name || 'Unknown Resource'}
-                          </p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="flex items-center gap-1 text-xs text-slate-500">
-                              <Clock className="w-3 h-3" />
-                              {new Date(tr.createdAt).toLocaleDateString()}
-                            </span>
+                {transfers.map(tr => {
+                  if (import.meta.env.VITE_STABILIZATION_DEBUG && !tr.fromOrganization) {
+                    console.warn('[INVALID_TRANSFER_ORG]', tr.id);
+                  }
+                  return (
+                    <tr 
+                      key={tr.id} 
+                      onClick={() => navigate(`/dashboard/transfers/${tr.id}`)}
+                      className="group hover:bg-slate-800/30 transition-colors cursor-pointer"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-slate-800/50 border border-slate-700 flex items-center justify-center text-indigo-400">
+                            <Truck className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-white group-hover:text-indigo-300 transition-colors">
+                              {tr.resource?.name ?? 'Unknown Resource'}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="flex items-center gap-1 text-xs text-slate-500">
+                                <Clock className="w-3 h-3" />
+                                {new Date(tr.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-300">
-                      {tr.quantity}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/50 text-xs font-medium text-slate-300 border border-slate-700">
-                        {tr.fromOrganization?.name || 'Unknown'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/50 text-xs font-medium text-slate-300 border border-slate-700">
-                        {tr.toOrganization?.name || 'Unknown'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                        tr.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                        tr.status === 'IN_TRANSIT' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                        tr.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                        tr.status === 'CANCELLED' ? 'bg-slate-500/10 text-slate-400 border-slate-500/20' :
-                        'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
-                      }`}>
-                        {tr.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-300">
+                        {tr.quantity}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/50 text-xs font-medium text-slate-300 border border-slate-700">
+                          {tr.fromOrganization?.name ?? 'Unknown'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/50 text-xs font-medium text-slate-300 border border-slate-700">
+                          {tr.toOrganization?.name ?? 'Unknown'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                          tr.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                          tr.status === 'IN_TRANSIT' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                          tr.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                          tr.status === 'CANCELLED' ? 'bg-slate-500/10 text-slate-400 border-slate-500/20' :
+                          'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                        }`}>
+                          {tr.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

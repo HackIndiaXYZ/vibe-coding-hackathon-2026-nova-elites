@@ -37,6 +37,10 @@ export const api = async <T>(endpoint: string, options: ApiOptions = {}): Promis
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
+  if (!headers.has('x-request-id')) {
+    const requestId = crypto?.randomUUID?.() ?? `req_${Date.now()}_${Math.random()}`;
+    headers.set('x-request-id', requestId);
+  }
 
   const response = await fetch(url, {
     ...options,
