@@ -102,7 +102,7 @@ export const TransfersPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
-                {transfers.map((tr, index) => {
+                {transfers.map((tr) => {
                   if (import.meta.env.VITE_STABILIZATION_DEBUG && !tr.fromOrganization) {
                     console.warn('[INVALID_TRANSFER_ORG]', tr.id);
                   }
