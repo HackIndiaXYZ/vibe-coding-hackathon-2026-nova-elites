@@ -32,7 +32,11 @@ export const VolunteerOnboardingPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const res = await onboardingService.createVolunteerProfile(formData);
+      const payload = {
+        ...formData,
+        operationalRegions: formData.homeLocation ? [formData.homeLocation] : []
+      };
+      const res = await onboardingService.createVolunteerProfile(payload);
       
       if (res.success) {
         // Hydrate to get the new volunteer profile

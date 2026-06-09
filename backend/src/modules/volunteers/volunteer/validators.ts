@@ -5,7 +5,7 @@ export const createVolunteerSchema = z.object({
   fullName: z.string().min(1),
   phoneNumber: z.string().min(1),
   homeLocation: z.string().optional().nullable(),
-  operationalRegions: z.array(z.string()).min(1),
+  operationalRegions: z.array(z.string()).optional().default([]),
   bio: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
   experienceYears: z.number().int().nonnegative({ message: 'Experience years must be a non-negative integer' }).optional().nullable(),
