@@ -19,8 +19,8 @@ export class ApiError extends Error {
 
 export const api = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T> => {
   const token = localStorage.getItem('samanvay_token');
-  
-  const baseUrl = options.useCoordinationLayer 
+
+  const baseUrl = options.useCoordinationLayer
     ? import.meta.env.VITE_COORDINATION_URL
     : import.meta.env.VITE_API_URL;
 
@@ -36,6 +36,11 @@ export const api = async <T>(endpoint: string, options: ApiOptions = {}): Promis
   }
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
+  }
+  const organizationId = localStorage.getItem('active_organization_id');
+
+  if (organizationId) {
+    headers.set('x-org-id', organizationId);
   }
   if (!headers.has('x-request-id')) {
     const requestId = crypto?.randomUUID?.() ?? `req_${Date.now()}_${Math.random()}`;
