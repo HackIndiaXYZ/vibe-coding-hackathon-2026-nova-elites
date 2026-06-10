@@ -37,7 +37,8 @@ export const api = async <T>(endpoint: string, options: ApiOptions = {}): Promis
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
-  const organizationId = localStorage.getItem('active_organization_id');
+  const organizationId =
+    localStorage.getItem('samanvay_active_workspace');
 
   if (organizationId) {
     headers.set('x-org-id', organizationId);
