@@ -63,6 +63,9 @@ export const CreateTransferModal: React.FC<CreateTransferModalProps> = ({ onClos
 
       const res = await api<{ success: boolean }>('/api/transfers/direct', {
         method: 'POST',
+        headers: {
+          'x-org-id': orgId
+        },
         body: JSON.stringify(payload)
       });
 
