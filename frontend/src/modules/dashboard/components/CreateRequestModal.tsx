@@ -51,7 +51,7 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ onClose,
         createdById: 'system' // placeholder for Phase 2 constraints
       };
 
-      const res = await api<{ success: boolean }>('/api/resource-needs', {
+      const res = await api<{ success: boolean }>('/api/needs', {
         method: 'POST',
         body: JSON.stringify(payload)
       });
