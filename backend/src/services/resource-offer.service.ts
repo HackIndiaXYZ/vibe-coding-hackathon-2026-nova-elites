@@ -24,11 +24,29 @@ export async function createResourceOffer(data: any) {
   // Invariant 5: Offer creation does not reserve inventory
   return await prisma.resourceOffer.create({
     data: {
-      needId: data.needId,
-      offeringOrganizationId: data.offeringOrganizationId,
-      resourceLotId: data.resourceLotId,
+
+      need: {
+        connect: {
+          id: data.needId
+        }
+      },
+
+      offeringOrganization: {
+        connect: {
+          id: data.offeringOrganizationId
+        }
+      },
+
+      resourceLot: {
+        connect: {
+          id: data.resourceLotId
+        }
+      },
+
       offeredQuantity: data.offeredQuantity,
+
       notes: data.notes,
+
       createdById: data.createdById,
     },
   });
