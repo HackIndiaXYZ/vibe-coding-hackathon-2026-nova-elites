@@ -59,7 +59,24 @@ app.use(cors({
 
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
-  credentials: true
+
+  credentials: true,
+
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'x-org-id',
+    'x-request-id'
+  ],
+
+  methods: [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS'
+  ]
 }));
 app.use(express.json());
 

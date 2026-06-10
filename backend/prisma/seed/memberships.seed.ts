@@ -14,7 +14,8 @@ export async function seedMemberships() {
             'Users or Organizations missing before membership seeding'
         );
     }
-
+    console.log('USERS:', users);
+    console.log('ORGS:', organizations);
     const memberships = [
         {
             userId: users[0].id,

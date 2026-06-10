@@ -9,7 +9,10 @@ const prisma = new PrismaClient();
 
 async function main() {
     console.log('🌱 Starting database seed...');
-
+    await prisma.membership.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.resource.deleteMany();
+    await prisma.organization.deleteMany();
     await seedOrganizations();
 
     await seedUsers();
