@@ -45,7 +45,7 @@ Samanvay is an open coordination infrastructure that connects organizations, vol
 ## Live Demo
 
 > **[https://samanvay-omega.vercel.app/](https://samanvay-omega.vercel.app/)**
-    user id :[EMAIL_ADDRESS] password:Samanvay@123
+    user id :sarah@samanvay.org password:Samanvay@123
 
 Use the platform to create an organization or volunteer account, manage inventory, coordinate resource requests, assign volunteers, and track transfers across the network.
 
