@@ -46,11 +46,11 @@ export const completeTransferController = asyncHandler(async (req: Request, res:
 export const acceptTransferController = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { prisma } = require('../prisma');
-  
+
   const transfer = await prisma.$transaction(async (tx: any) => {
     const t = await tx.transfer.findUnique({ where: { id }, include: { offer: true } });
     if (!t) throw new NotFoundError('Transfer not found');
-    
+
     // Update status
     const updated = await tx.transfer.update({
       where: { id },
@@ -206,7 +206,7 @@ export const createDirectTransferController = asyncHandler(
   async (req: Request, res: Response) => {
     // The user explicitly approved this pattern to wrap schema creation for UX simplicity
     const { resourceId, resourceLotId, toOrganizationId, quantity, notes } = req.body;
-    
+
     const fromOrganizationId = req.query.organizationId as string || req.body.fromOrganizationId;
 
     if (!fromOrganizationId) {
@@ -232,15 +232,33 @@ export const createDirectTransferController = asyncHandler(
         }
       });
 
-      // 2. Create ResourceOffer for source org
       const offer = await tx.resourceOffer.create({
         data: {
-          needId: need.id,
-          offeringOrganizationId: fromOrganizationId,
-          resourceLotId,
+
+          need: {
+            connect: {
+              id: need.id
+            }
+          },
+
+          offeringOrganization: {
+            connect: {
+              id: fromOrganizationId
+            }
+          },
+
+          resourceLot: {
+            connect: {
+              id: resourceLotId
+            }
+          },
+
           offeredQuantity: quantity,
-          status: 'ACCEPTED', // immediately accepted since it's direct
-          createdById: 'system', // placeholder
+
+          status: 'ACCEPTED',
+
+          createdById: 'system',
+
           notes: notes || 'Direct transfer offer',
         }
       });
