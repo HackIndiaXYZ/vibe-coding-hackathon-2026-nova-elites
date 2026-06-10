@@ -1,95 +1,166 @@
 import { PrismaClient } from '@prisma/client';
-import { IDS } from './utils';
 
-export async function seedResources(prisma: PrismaClient) {
-  console.log('📦 Seeding inventory...');
+const prisma = new PrismaClient();
 
-  // 1. Seed Resources
-  const resources = [
-    { id: IDS.resources.riceBags, name: 'Rice Bags', unit: 'bags' },
-    { id: IDS.resources.waterBottles, name: 'Water Bottles', unit: 'cartons' },
-    { id: IDS.resources.medicalKits, name: 'Medical Kits', unit: 'kits' },
-    { id: IDS.resources.blankets, name: 'Blankets', unit: 'units' },
-    { id: IDS.resources.tents, name: 'Tents', unit: 'units' },
-    { id: IDS.resources.dieselFuel, name: 'Diesel Fuel', unit: 'liters' },
-  ];
+export async function seedResources() {
+    console.log('📦 Seeding resources...');
 
-  for (const resource of resources) {
-    await prisma.resource.upsert({
-      where: { name: resource.name },
-      update: {},
-      create: resource
-    });
-  }
+    const resources = [
+        // FOOD
 
-  // 2. Seed Resource Lots
-  await prisma.resourceLot.upsert({
-    where: { id: IDS.resourceLots.redCrossMedicalKits },
-    update: {},
-    create: {
-      id: IDS.resourceLots.redCrossMedicalKits,
-      organizationId: IDS.organizations.redCross,
-      resourceId: IDS.resources.medicalKits,
-      quantity: 400,
-      reservedQuantity: 50,
-      availableQuantity: 350,
-      notes: 'Stored in Delhi main warehouse'
+        {
+            name: 'Rice Bags (10kg)',
+            unit: 'bags',
+            description: '10kg packaged rice bags for emergency food distribution'
+        },
+
+        {
+            name: 'Wheat Flour Bags (25kg)',
+            unit: 'bags',
+            description: '25kg wheat flour sacks for community kitchens'
+        },
+
+        {
+            name: 'Ready-to-Eat Meal Kits',
+            unit: 'kits',
+            description: 'Pre-packaged emergency meal kits for disaster response'
+        },
+
+        {
+            name: 'Baby Nutrition Formula (400g)',
+            unit: 'cans',
+            description: 'Infant nutritional formula cans'
+        },
+
+        {
+            name: 'Cooking Oil Containers (15L)',
+            unit: 'containers',
+            description: 'Bulk cooking oil containers for relief kitchens'
+        },
+
+        // WATER
+
+        {
+            name: 'Drinking Water Cartons (24x1L)',
+            unit: 'cartons',
+            description: 'Cartons containing 24 one-liter water bottles'
+        },
+
+        {
+            name: 'Water Tankers (5000L)',
+            unit: 'tankers',
+            description: 'Mobile potable water tanker units'
+        },
+
+        {
+            name: 'Water Purification Tablets',
+            unit: 'boxes',
+            description: 'Emergency water purification tablet boxes'
+        },
+
+        // MEDICAL
+
+        {
+            name: 'Emergency Medical Kits',
+            unit: 'kits',
+            description: 'Primary trauma and emergency response medical kits'
+        },
+
+        {
+            name: 'ORS Packets (Box of 100)',
+            unit: 'boxes',
+            description: 'Oral rehydration solution packet boxes'
+        },
+
+        {
+            name: 'Surgical Masks (Pack of 50)',
+            unit: 'packs',
+            description: 'Disposable surgical protection masks'
+        },
+
+        {
+            name: 'Gloves (Box of 100)',
+            unit: 'boxes',
+            description: 'Disposable medical examination gloves'
+        },
+
+        {
+            name: 'Blood Storage Units',
+            unit: 'units',
+            description: 'Portable blood preservation containers'
+        },
+
+        // SHELTER
+
+        {
+            name: 'Relief Tents (Family Size)',
+            unit: 'tents',
+            description: 'Temporary shelter tents for displaced families'
+        },
+
+        {
+            name: 'Blankets (Thermal)',
+            unit: 'blankets',
+            description: 'Cold-weather thermal blankets'
+        },
+
+        {
+            name: 'Sleeping Mats',
+            unit: 'mats',
+            description: 'Portable sleeping ground mats'
+        },
+
+        {
+            name: 'Tarpaulin Sheets',
+            unit: 'sheets',
+            description: 'Heavy-duty waterproof shelter tarpaulins'
+        },
+
+        // LOGISTICS
+
+        {
+            name: 'Diesel Barrels (200L)',
+            unit: 'barrels',
+            description: 'Fuel barrels for generators and logistics vehicles'
+        },
+
+        {
+            name: 'Portable Generators (5kVA)',
+            unit: 'generators',
+            description: 'Field-deployable emergency generators'
+        },
+
+        {
+            name: 'Solar Lantern Kits',
+            unit: 'kits',
+            description: 'Rechargeable solar-powered lighting kits'
+        },
+
+        // SANITATION
+
+        {
+            name: 'Hygiene Kits',
+            unit: 'kits',
+            description: 'Emergency personal hygiene kits'
+        },
+
+        {
+            name: 'Sanitary Pad Packs',
+            unit: 'packs',
+            description: 'Women hygiene sanitary packs'
+        },
+
+        {
+            name: 'Portable Toilets',
+            unit: 'units',
+            description: 'Deployable emergency sanitation units'
+        }
+    ];
+    for (const resource of resources) {
+        await prisma.resource.create({
+            data: resource
+        });
     }
-  });
 
-  await prisma.resourceLot.upsert({
-    where: { id: IDS.resourceLots.foodNetworkRice },
-    update: {},
-    create: {
-      id: IDS.resourceLots.foodNetworkRice,
-      organizationId: IDS.organizations.foodNetwork,
-      resourceId: IDS.resources.riceBags,
-      quantity: 2000,
-      reservedQuantity: 0,
-      availableQuantity: 2000,
-      notes: 'Stored in Community Food Network central hub'
-    }
-  });
-
-  await prisma.resourceLot.upsert({
-    where: { id: IDS.resourceLots.floodReliefBlankets },
-    update: {},
-    create: {
-      id: IDS.resourceLots.floodReliefBlankets,
-      organizationId: IDS.organizations.floodRelief,
-      resourceId: IDS.resources.blankets,
-      quantity: 1000,
-      reservedQuantity: 100,
-      availableQuantity: 900,
-      notes: 'Winter relief blankets'
-    }
-  });
-
-  await prisma.resourceLot.upsert({
-    where: { id: IDS.resourceLots.shelterAllianceTents },
-    update: {},
-    create: {
-      id: IDS.resourceLots.shelterAllianceTents,
-      organizationId: IDS.organizations.shelterAlliance,
-      resourceId: IDS.resources.tents,
-      quantity: 150,
-      reservedQuantity: 0,
-      availableQuantity: 150,
-      notes: 'Emergency 4-person tents'
-    }
-  });
-
-  await prisma.resourceLot.upsert({
-    where: { id: IDS.resourceLots.shelterAllianceWater },
-    update: {},
-    create: {
-      id: IDS.resourceLots.shelterAllianceWater,
-      organizationId: IDS.organizations.shelterAlliance,
-      resourceId: IDS.resources.waterBottles,
-      quantity: 500,
-      reservedQuantity: 0,
-      availableQuantity: 500,
-      notes: 'Water cartons'
-    }
-  });
+    console.log(`✅ Seeded ${resources.length} resources`);
 }
