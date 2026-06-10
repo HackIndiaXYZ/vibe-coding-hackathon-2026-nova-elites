@@ -231,6 +231,25 @@ export const createDirectTransferController = asyncHandler(
           notes: 'Direct transfer request',
         }
       });
+      const sourceLot = await tx.resourceLot.findFirst({
+        where: {
+          organizationId: fromOrganizationId,
+          resourceId: resourceId,
+
+          availableQuantity: {
+            gte: quantity
+          }
+        },
+
+        orderBy: {
+          createdAt: 'asc'
+        }
+      });
+      if (!sourceLot) {
+        throw new Error(
+          'No inventory lot available with sufficient quantity.'
+        );
+      }
 
       const offer = await tx.resourceOffer.create({
         data: {
@@ -249,10 +268,9 @@ export const createDirectTransferController = asyncHandler(
 
           resourceLot: {
             connect: {
-              id: resourceLotId
+              id: sourceLot.id
             }
           },
-
           offeredQuantity: quantity,
 
           status: 'ACCEPTED',
