@@ -37,12 +37,28 @@ export const api = async <T>(endpoint: string, options: ApiOptions = {}): Promis
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
-  const organizationId =
+  const workspaceRaw =
     localStorage.getItem('samanvay_active_workspace');
 
-  if (organizationId) {
-    headers.set('x-org-id', organizationId);
+  if (workspaceRaw) {
+    try {
+      const workspace = JSON.parse(workspaceRaw);
+
+      if (workspace?.organizationId) {
+        headers.set(
+          'x-org-id',
+          workspace.organizationId
+        );
+      }
+    } catch (error) {
+      console.error(
+        'Failed to parse workspace context',
+        error
+      );
+    }
   }
+
+
   if (!headers.has('x-request-id')) {
     const requestId = crypto?.randomUUID?.() ?? `req_${Date.now()}_${Math.random()}`;
     headers.set('x-request-id', requestId);
