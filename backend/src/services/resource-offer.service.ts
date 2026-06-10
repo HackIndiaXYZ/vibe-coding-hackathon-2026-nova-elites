@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { createAuditLog } from './audit.service';
 
 export async function createResourceOffer(data: any) {
   if (data.offeredQuantity <= 0) {
@@ -114,6 +115,14 @@ export async function acceptOffer(offerId: string, actioningOrganizationId: stri
         approvedById: approvedById,
       },
     });
+
+    await createAuditLog({
+      action: 'RESOURCE_OFFER_ACCEPTED' as any,
+      entityType: 'RESOURCE_OFFER' as any,
+      entityId: offer.id,
+      userId: approvedById,
+      organizationId: offer.need.organizationId,
+    }, tx);
 
     return {
       transfer,

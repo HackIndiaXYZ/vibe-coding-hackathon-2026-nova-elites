@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { AuthLayout } from '../components/AuthLayout';
+import { useAuth } from '../../../app/providers/AuthProvider';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,9 +19,7 @@ export function LoginPage() {
 
     try {
       const response = await authService.login({ email, password });
-      // Store token
-      localStorage.setItem('samanvay_token', response.data.token);
-      // Temporarily direct to dashboard or onboarding placeholder
+      await login(response.data.token);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Authentication failed');

@@ -3,6 +3,7 @@ import { getTransfers, getTransferById, updateTransferStatus } from '../services
 import { createSuccessResponse } from '../utils/response';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { NotFoundError } from '../utils/errors';
+import { createAuditLog } from '../services/audit.service';
 
 export const getTransfersController = asyncHandler(async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
@@ -53,7 +54,7 @@ export const acceptTransferController = asyncHandler(async (req: Request, res: R
     // Update status
     const updated = await tx.transfer.update({
       where: { id },
-      data: { status: 'ACCEPTED' }
+      data: { status: 'APPROVED' }
     });
 
     // Reserve inventory
@@ -64,6 +65,18 @@ export const acceptTransferController = asyncHandler(async (req: Request, res: R
         availableQuantity: { decrement: t.quantity }
       }
     });
+
+    await createAuditLog({
+      action: 'TRANSFER_APPROVED' as any,
+      entityType: 'TRANSFER' as any,
+      entityId: id,
+      userId: (req as any).user?.id || 'system',
+      organizationId: t.toOrganizationId,
+      metadata: {
+        previousStatus: t.status,
+        newStatus: 'APPROVED',
+      }
+    }, tx);
 
     return updated;
   });
@@ -101,6 +114,39 @@ export const deliverTransferController = asyncHandler(async (req: Request, res: 
 
     // (In a real system, we'd also add the quantity to the receiving org's inventory here)
 
+    await createAuditLog({
+      action: 'TRANSFER_COMPLETED' as any,
+      entityType: 'TRANSFER' as any,
+      entityId: id,
+      userId: (req as any).user?.id || 'system',
+      organizationId: t.toOrganizationId,
+      metadata: {
+        previousStatus: t.status,
+        newStatus: 'COMPLETED',
+      }
+    }, tx);
+
+    // Recalculate and update ResourceNeed status
+    const need = await tx.resourceNeed.findUnique({ where: { id: t.needId } });
+    if (need) {
+      const completedTransfers = await tx.transfer.findMany({
+        where: { needId: t.needId, status: 'COMPLETED' },
+      });
+      const totalCompleted = completedTransfers.reduce((sum: number, tr: any) => sum + tr.quantity, 0);
+
+      let needStatus = 'OPEN';
+      if (totalCompleted >= need.quantity) {
+        needStatus = 'FULFILLED';
+      } else if (totalCompleted > 0) {
+        needStatus = 'PARTIALLY_FULFILLED';
+      }
+
+      await tx.resourceNeed.update({
+        where: { id: need.id },
+        data: { status: needStatus },
+      });
+    }
+
     return updated;
   });
 
@@ -120,8 +166,15 @@ export const cancelTransferController = asyncHandler(async (req: Request, res: R
       data: { status: 'CANCELLED' }
     });
 
-    // If it was accepted or beyond, release the reservation
-    if (['ACCEPTED', 'IN_TRANSIT'].includes(t.status)) {
+    // If it was accepted or beyond, release the reservation. If pending, just restore availableQuantity
+    if (t.status === 'PENDING') {
+      await tx.resourceLot.update({
+        where: { id: t.offer.resourceLotId },
+        data: {
+          availableQuantity: { increment: t.quantity }
+        }
+      });
+    } else if (['APPROVED', 'IN_TRANSIT'].includes(t.status)) {
       await tx.resourceLot.update({
         where: { id: t.offer.resourceLotId },
         data: {
@@ -130,6 +183,18 @@ export const cancelTransferController = asyncHandler(async (req: Request, res: R
         }
       });
     }
+
+    await createAuditLog({
+      action: 'TRANSFER_CANCELLED' as any,
+      entityType: 'TRANSFER' as any,
+      entityId: id,
+      userId: (req as any).user?.id || 'system',
+      organizationId: t.toOrganizationId,
+      metadata: {
+        previousStatus: t.status,
+        newStatus: 'CANCELLED',
+      }
+    }, tx);
 
     return updated;
   });
